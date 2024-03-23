@@ -2,6 +2,7 @@ const express = require('express');
 let morgan = require('morgan')
 const mongoose = require('mongoose');
 const expressLayouts = require('express-ejs-layouts');
+const blogRoutes = require('./routes/blogRoutes')
 
 const Blog = require('./models/Blog');
 
@@ -10,7 +11,7 @@ const app = express();
 app.use(express.urlencoded({extended:true}));
 
 //db url
-let mongoUrl = "mongodb+srv://hlaingminthan:test1234@cluster0.qhxu0as.mongodb.net/?retryWrites=true&w=majority";
+let mongoUrl = "mongodb+srv://heinhtet:test1234@cluster0.usxirgu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 mongoose.connect(mongoUrl).then(() => {
     console.log('connected to db')
     app.listen(3000,() => {
@@ -41,25 +42,7 @@ app.get('/add-blog',async (req,res) => {
 })
 
 app.get('/',async (req,res) => {
-    let blogs = await Blog.find().sort({createdAt : -1});
-    res.render('home',{
-        blogs,
-        title : "Home"
-    })
-});
-
-app.post('/blogs',async (req,res) => {
-    let {title,intro,body} = req.body;
-
-    let blog = new Blog({
-        title,
-        intro,
-        body
-    });
-
-    await blog.save();
-
-    res.redirect('/');
+    res.redirect('/blogs');
 });
 
 app.get('/about',(req,res) => {
@@ -74,36 +57,7 @@ app.get('/contact',(req,res) => {
     });
 });
 
-app.get('/blogs/create',(req,res) => {
-    res.render('blogs/create', {
-        title : 'Blog Create'
-    });
-});
-
-app.post('/blogs/:id/delete',async (req,res,next) => {
-    try {
-        let id = req.params.id;
-        await Blog.findByIdAndDelete(id);
-        res.redirect('/');
-    }catch(e) {
-        console.log(e)
-        next()
-    }
-})
-
-app.get('/blogs/:id',async (req,res,next) => {
-    try {
-        let id = req.params.id;
-        let blog = await Blog.findById(id);
-        res.render('blogs/show',{
-            blog,
-            title : "Blog Detail"
-        })
-    }catch(e) {
-        console.log(e)
-        next()
-    }
-})
+app.use('/blogs',blogRoutes);
 
 app.use((req,res)=> {
     res.status(404).render('404', {
